@@ -1,0 +1,5 @@
+from: <your-email>
+to: 
+  - <recipient-1>
+  - <recipient-2>
+password: <gmail app password>

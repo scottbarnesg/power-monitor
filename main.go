@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"power-monitor/client"
+	"power-monitor/config"
+	"power-monitor/email"
 	"power-monitor/server"
 	"time"
 )
@@ -38,6 +40,11 @@ func runClient(serverHostname string, serverPort int, clientName string, request
 }
 
 func main() {
+	// Load config
+	config := config.ReadConfig("config.yml")
+	// Send test email
+	// TODO: Refactor this to fire when appropriate conditions are met.
+	email.SendEmail(config.From, config.To, "Test Message", "This is a test message from the power alerting app.", config.From, config.Password)
 	// Parse command line arguments
 	serverPtr := flag.Bool("server", false, "Run the server.")
 	clientPtr := flag.Bool("client", false, "Run the client.")
