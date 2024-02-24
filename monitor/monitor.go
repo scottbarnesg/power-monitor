@@ -1,0 +1,55 @@
+package monitor
+
+import (
+	"log"
+	"power-monitor/server"
+	"time"
+)
+
+type AlertStatus struct {
+	ClientName string
+	IsOnline   bool
+}
+
+func MonitorClientStatus(clientStatus *server.ClientStatus, alertThreshold time.Duration) {
+	alertStatuses := make(map[string]AlertStatus)
+	log.Printf("Monitoring client statuses with Alert Threshold %s.\n", alertThreshold.String())
+	for {
+		for _, clientName := range clientStatus.GetNames() {
+			// Create this client's AlertStatus if it doesn't exist
+			if _, exists := alertStatuses[clientName]; !exists {
+				alertStatuses[clientName] = AlertStatus{ClientName: clientName, IsOnline: true}
+			}
+			// Calculate how long its been since the client last checked in.
+			clientLastCheckin := clientStatus.GetStatus(clientName)
+			timeSinceLastCheckin := time.Since(clientLastCheckin)
+			// Handle case where the client's last checkin is older than alertThreshold
+			if timeSinceLastCheckin > alertThreshold {
+				// TODO: If we havent sent an alert, send one and update this client's AlertStatus
+				clientAlertStatus := alertStatuses[clientName]
+				if clientAlertStatus.IsOnline {
+					// Update this client's AlertStatus
+					clientAlertStatus.IsOnline = false
+					// TODO: Send an "alert" email
+					log.Printf("Client %s is offline. Last checkin was %s.\n", clientName, clientLastCheckin.String())
+					// Update AlertStatuses for this client
+					alertStatuses[clientName] = clientAlertStatus
+				}
+			} else { // Handle case where client's last checkin is more recent than AlertThreshold
+				// TODO: If this is marked as offline, mark it as back online and send a "resolved" email.
+				clientAlertStatus := alertStatuses[clientName]
+				// If this client is marked as offline, it has just come back online.
+				if !clientAlertStatus.IsOnline {
+					// TODO: Send an "issue resolved" email.
+					log.Printf("Client %s is back online.\n", clientName)
+					// Update AlertStatuses for this client
+					clientAlertStatus.IsOnline = true
+					alertStatuses[clientName] = clientAlertStatus
+				} else {
+					log.Printf("Client %s is healthy. Last checkin was %s.\n", clientName, clientLastCheckin)
+				}
+			}
+		}
+		time.Sleep(alertThreshold)
+	}
+}

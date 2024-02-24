@@ -7,19 +7,26 @@ import (
 	"net/http"
 	"os"
 	"power-monitor/client"
-	"power-monitor/config"
-	"power-monitor/email"
+	"power-monitor/monitor"
 	"power-monitor/server"
 	"time"
 )
 
 func runServer() {
 	clientStatus := server.ClientStatus{Status: make(map[string]time.Time)}
+	// Start Goroutine to monitor client status
+	alertThreshold, err := time.ParseDuration("1m")
+	if err != nil {
+		log.Fatal("Failed to parse Alert Threshold duration.\n")
+		return
+	}
+	go monitor.MonitorClientStatus(&clientStatus, alertThreshold)
+	// Start HTTP Server
 	http.HandleFunc("/", server.Index)
 	http.HandleFunc("/checkin", server.ClientCheckIn(&clientStatus))
 	listenPort := 8000
 	log.Printf("Server is listening on port %d.", listenPort)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil)
+	err = http.ListenAndServe(fmt.Sprintf(":%d", listenPort), nil)
 	log.Printf("%s", err)
 }
 
@@ -41,10 +48,10 @@ func runClient(serverHostname string, serverPort int, clientName string, request
 
 func main() {
 	// Load config
-	config := config.ReadConfig("config.yml")
+	// config := config.ReadConfig("config.yml")
 	// Send test email
 	// TODO: Refactor this to fire when appropriate conditions are met.
-	email.SendEmail(config.From, config.To, "Test Message", "This is a test message from the power alerting app.", config.From, config.Password)
+	// email.SendEmail(config.From, config.To, "Test Message", "This is a test message from the power alerting app.", config.From, config.Password)
 	// Parse command line arguments
 	serverPtr := flag.Bool("server", false, "Run the server.")
 	clientPtr := flag.Bool("client", false, "Run the client.")
