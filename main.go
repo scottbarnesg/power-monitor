@@ -7,20 +7,24 @@ import (
 	"net/http"
 	"os"
 	"power-monitor/client"
+	"power-monitor/config"
 	"power-monitor/monitor"
 	"power-monitor/server"
 	"time"
 )
 
-func runServer() {
+func runServer(alertTime string) {
+	// Create shared ClientStatus data structure
 	clientStatus := server.ClientStatus{Status: make(map[string]time.Time)}
+	// Load the config
+	config := config.ReadConfig("config.yml")
 	// Start Goroutine to monitor client status
-	alertThreshold, err := time.ParseDuration("1m")
+	alertThreshold, err := time.ParseDuration(alertTime)
 	if err != nil {
 		log.Fatal("Failed to parse Alert Threshold duration.\n")
 		return
 	}
-	go monitor.MonitorClientStatus(&clientStatus, alertThreshold)
+	go monitor.MonitorClientStatus(&clientStatus, &config, alertThreshold)
 	// Start HTTP Server
 	http.HandleFunc("/", server.Index)
 	http.HandleFunc("/checkin", server.ClientCheckIn(&clientStatus))
@@ -47,14 +51,11 @@ func runClient(serverHostname string, serverPort int, clientName string, request
 }
 
 func main() {
-	// Load config
-	// config := config.ReadConfig("config.yml")
-	// Send test email
-	// TODO: Refactor this to fire when appropriate conditions are met.
-	// email.SendEmail(config.From, config.To, "Test Message", "This is a test message from the power alerting app.", config.From, config.Password)
 	// Parse command line arguments
 	serverPtr := flag.Bool("server", false, "Run the server.")
 	clientPtr := flag.Bool("client", false, "Run the client.")
+	// Args only for client
+	alertTime := flag.String("alert-time", "5m", "A time.Duration string representing the duration at which an email alert should be sent after a client goes offline.")
 	// Args only for client
 	serverHostnamePtr := flag.String("hostname", "localhost", "Hostname for the server to check in with.")
 	serverPortPtr := flag.Int("port", 8000, "Port the server is listening on.")
@@ -67,7 +68,7 @@ func main() {
 		os.Exit(1)
 	} else if *serverPtr {
 		log.Println("Starting server...")
-		runServer()
+		runServer(*alertTime)
 	} else if *clientPtr {
 		log.Println("Starting client...")
 		runClient(*serverHostnamePtr, *serverPortPtr, *clientNamePtr, *requestDelayPtr)

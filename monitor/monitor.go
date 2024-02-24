@@ -1,7 +1,10 @@
 package monitor
 
 import (
+	"fmt"
 	"log"
+	"power-monitor/config"
+	"power-monitor/email"
 	"power-monitor/server"
 	"time"
 )
@@ -11,7 +14,7 @@ type AlertStatus struct {
 	IsOnline   bool
 }
 
-func MonitorClientStatus(clientStatus *server.ClientStatus, alertThreshold time.Duration) {
+func MonitorClientStatus(clientStatus *server.ClientStatus, config *config.Config, alertThreshold time.Duration) {
 	alertStatuses := make(map[string]AlertStatus)
 	log.Printf("Monitoring client statuses with Alert Threshold %s.\n", alertThreshold.String())
 	for {
@@ -25,23 +28,29 @@ func MonitorClientStatus(clientStatus *server.ClientStatus, alertThreshold time.
 			timeSinceLastCheckin := time.Since(clientLastCheckin)
 			// Handle case where the client's last checkin is older than alertThreshold
 			if timeSinceLastCheckin > alertThreshold {
-				// TODO: If we havent sent an alert, send one and update this client's AlertStatus
+				// If we havent sent an alert, send one and update this client's AlertStatus
 				clientAlertStatus := alertStatuses[clientName]
 				if clientAlertStatus.IsOnline {
 					// Update this client's AlertStatus
 					clientAlertStatus.IsOnline = false
-					// TODO: Send an "alert" email
+					// Send an "alert" email
 					log.Printf("Client %s is offline. Last checkin was %s.\n", clientName, clientLastCheckin.String())
+					emailSubject := fmt.Sprintf("Power Monitor Alert: %s is Offline", clientName)
+					emailBody := fmt.Sprintf("Power Monitor detected that %s is offline. It last checked in at %s\n.", clientName, clientLastCheckin.String())
+					email.SendEmail(config.From, config.To, emailSubject, emailBody, config.From, config.Password)
 					// Update AlertStatuses for this client
 					alertStatuses[clientName] = clientAlertStatus
 				}
 			} else { // Handle case where client's last checkin is more recent than AlertThreshold
-				// TODO: If this is marked as offline, mark it as back online and send a "resolved" email.
+				// If this is marked as offline, mark it as back online and send a "resolved" email.
 				clientAlertStatus := alertStatuses[clientName]
 				// If this client is marked as offline, it has just come back online.
 				if !clientAlertStatus.IsOnline {
-					// TODO: Send an "issue resolved" email.
+					// Send an "issue resolved" email.
 					log.Printf("Client %s is back online.\n", clientName)
+					emailSubject := fmt.Sprintf("Power Monitor Alert: %s is back Online", clientName)
+					emailBody := fmt.Sprintf("Power Monitor detected that %s is back online. It last checked in at %s\n.", clientName, clientLastCheckin.String())
+					email.SendEmail(config.From, config.To, emailSubject, emailBody, config.From, config.Password)
 					// Update AlertStatuses for this client
 					clientAlertStatus.IsOnline = true
 					alertStatuses[clientName] = clientAlertStatus
