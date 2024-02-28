@@ -16,6 +16,13 @@ Copy `example.yml` to `config.yml`, and update `config.yml` to contain appropria
 
 `./power-monitor -server`
 
+### Run the server in docker
+
+```
+docker-compose build
+docker-compose up -d
+```
+
 ### Run the client
 
 `./power-monitor -client -hostname localhost -port 8000 -name test`
