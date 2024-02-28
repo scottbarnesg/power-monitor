@@ -10,8 +10,8 @@ func TestClientStatusSetStatus(t *testing.T) {
 	clientName := "test"
 	dt := time.Now()
 	clientStatus.setStatus(clientName, dt)
-	if clientStatus.getStatus(clientName) != dt {
-		t.Errorf("Client %s expected timestamp %s, but it was %s", clientName, dt, clientStatus.getStatus(clientName))
+	if clientStatus.GetStatus(clientName) != dt {
+		t.Errorf("Client %s expected timestamp %s, but it was %s", clientName, dt, clientStatus.GetStatus(clientName))
 	}
 }
 
@@ -23,7 +23,7 @@ func TestClientStatusGetNames(t *testing.T) {
 	clientName2 := "test2"
 	dt2 := time.Now()
 	clientStatus.setStatus(clientName2, dt2)
-	clientNames := clientStatus.getNames()
+	clientNames := clientStatus.GetNames()
 	clientNamesFound := 0
 	for _, clientName := range clientNames {
 		if clientName == clientName1 || clientName == clientName2 {
