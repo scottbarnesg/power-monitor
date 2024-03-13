@@ -22,6 +22,11 @@ func MonitorClientStatus(clientStatus *server.ClientStatus, config *config.Confi
 			// Create this client's AlertStatus if it doesn't exist
 			if _, exists := alertStatuses[clientName]; !exists {
 				alertStatuses[clientName] = AlertStatus{ClientName: clientName, IsOnline: true}
+				// This is a new client. Send an email indicating we detected a new client.
+				log.Printf("Identified new client: %s.\n", clientName)
+				emailSubject := fmt.Sprintf("Power Monitor Alert: New Client - %s.", clientName)
+				emailBody := fmt.Sprintf("Power Monitor detected new client: %s.\n", clientName)
+				email.SendEmail(config.From, config.To, emailSubject, emailBody, config.From, config.Password)
 			}
 			// Calculate how long its been since the client last checked in.
 			clientLastCheckin := clientStatus.GetStatus(clientName)
