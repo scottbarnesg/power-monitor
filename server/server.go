@@ -22,8 +22,8 @@ type ClientStatus struct {
 }
 
 func (cs *ClientStatus) setStatus(name string, dt time.Time) {
-	cs.lock.RLock()
-	defer cs.lock.RUnlock()
+	cs.lock.Lock()
+	defer cs.lock.Unlock()
 	cs.Status[name] = dt
 }
 

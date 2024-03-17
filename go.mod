@@ -1,6 +1,6 @@
 module power-monitor
 
-go 1.22.0
+go 1.21.8
 
 require (
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
