@@ -1,3 +1,4 @@
 power-monitor
 config.yml
 run.sh
+scripts/power-monitor.service
