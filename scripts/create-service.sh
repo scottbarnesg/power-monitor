@@ -7,7 +7,6 @@ echo "Setting user $USER as power monitor user..."
 sed -i "/^User=/ s/$/$USER\n/" scripts/power-monitor.service
 # Use current path to set execution path for service file
 echo "Setting execution path for power monitor service..."
-path=$(cd ../ && pwd)
 echo "ExecStart=$path/run.sh" >> scripts/power-monitor.service
 echo "WorkingDirectory=$path" >> scripts/power-monitor.service
 # Copy service file to systemd directory
