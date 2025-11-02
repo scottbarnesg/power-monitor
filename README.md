@@ -35,6 +35,7 @@ You can run the power monitor client as a Systemd service by following these ste
 2. Create a script in the top-level directory called `run.sh`. Populate it with the command to run the client. For example:
 
 ```sh
+#!/bin/bash
 ./power-monitor -client -hostname <server-hostname> -port <server-port> -name <client-name>
 ```
 
